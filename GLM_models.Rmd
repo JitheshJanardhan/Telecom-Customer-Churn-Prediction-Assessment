@@ -1,0 +1,432 @@
+GLM model 
+
+```{r}
+
+library(readxl)
+cellData <- read_xlsx(file.choose(), sheet = 2)
+
+sum(is.na(cellData))
+
+str(cellData)
+
+cellData$Churn <- as.factor(cellData$Churn)
+cellData$ContractRenewal <- as.factor(cellData$ContractRenewal)
+cellData$DataPlan <- as.factor(cellData$DataPlan)
+
+```
+
+```{r}
+library(esquisse)
+esquisser(cellData)
+
+
+library(ggplot2)
+
+ggplot(cellData) +
+ aes(x = DataUsage) +
+ geom_histogram(bins = 30L, fill = "#0c4c8a") +
+ theme_minimal()
+```
+
+
+
+Correlation plot: 
+
+```{r}
+cont <- cellData[,2:11]
+cont$ContractRenewal <- as.numeric(cont$ContractRenewal)
+cont$DataPlan <- as.numeric(cont$DataPlan)
+cor(cont)
+corrplot:: corrplot(cor(cont), type = "lower", diag = FALSE, method = "number")
+```
+Correlation test between correlated variable to check if the relationship is significant
+```{r}
+cor.test(cont$MonthlyCharge,cont$DataPlan)
+```
+
+```{r}
+cor.test(cont$MonthlyCharge,cont$DataUsage)
+```
+
+```{r}
+cor.test(cont$DataPlan,cont$DataUsage)
+```
+
+
+```{r}
+cor.test(cont$MonthlyCharge,cont$DayMins)
+```
+
+
+
+
+
+
+Train & test split
+
+```{r}
+
+library(caret)
+set.seed(321)
+
+trainindex <- createDataPartition(cellData$Churn, p=0.7, list = FALSE)
+trainCData <- cellData[trainindex,]
+testCData <- cellData[-trainindex,]
+table(trainCData$Churn)
+prop.table(table(trainCData$Churn))
+prop.table(table(testCData$Churn))
+View(trainCData)
+
+```
+
+
+
+
+
+##### GLM models
+
+
+###### Model- Full model 
+```{r}
+str(trainCData)
+attach(trainCData)
+#LRT
+logit1 = glm(Churn~., data = trainCData, family = binomial())
+```
+```{r}
+# McFadden Rsquare
+library(pscl)
+pR2(logit1)
+
+#Test for Individual Coefficients (individual betas)
+summary(logit1)
+
+```
+
+```{r}
+#Explanatory Power of Odds Ratio
+
+exp(coef(logit1))/(1+exp(coef(logit1)))
+
+```
+
+
+```{r}
+#confusion Matrix 
+
+Predict1 = predict(logit1, type = "response")
+Cutoff = floor(Predict1+0.5)
+table(Actual = trainCData$Churn, Predicted = Cutoff)
+
+
+# Prediction on test data
+PredictTest1 = predict(logit1, testCData, type = "response") 
+table (Actual = testCData$Churn,Predicted = PredictTest1>0.5)
+
+
+```
+```{r}
+library(Deducer)
+rocplot(logit1)
+```
+
+```{r}
+# VIF 
+library(car)
+vif(logit1)
+
+
+```
+
+
+######Logit 2 - with significant variables
+
+```{r}
+logit2 = glm(Churn~. -MonthlyCharge -DayCalls -DataUsage -DayMins -AccountWeeks -OverageFee, data = trainCData, family = binomial())
+# McFadden Rsquare
+pR2(logit2)
+#Test for Individual Coefficients (individual betas)
+summary(logit2)
+
+```
+
+```{r}
+#Explanatory Power of Odds Ratio
+exp(coef(logit2))/(1+exp(coef(logit2)))
+```
+
+```{r}
+#confusion Matrix 
+Predict2 = predict(logit2, type = "response")
+Cutoff1 = floor(Predict2+0.5)
+table(Actual = trainCData$Churn, Predicted = Cutoff1)
+
+
+# Prediction on test data
+PredictTest2 = predict(logit2, testCData, type = "response") 
+table (Actual = testCData$Churn,Predicted = PredictTest2>0.5)
+```
+
+
+```{r}
+# ROC plot
+rocplot(logit2)
+
+#VIF
+vif(logit2)
+
+
+```
+
+
+
+
+###### Model3 
+
+
+```{r}
+set.seed(321)
+logit3 = glm(Churn~. -MonthlyCharge -DayCalls -DataUsage -DayMins , data = trainCData, family = binomial())
+
+# McFadden Rsquare
+pR2(logit3)
+#Test for Individual Coefficients (individual betas)
+summary(logit3)
+```
+
+```{r}
+#Explanatory Power of Odds Ratio
+exp(coef(logit3))/(1+exp(coef(logit3)))
+```
+
+```{r}
+#confusion Matrix 
+Predict3 = predict(logit3, type = "response")
+Cutoff3 = floor(Predict3+0.5)
+table(Actual = trainCData$Churn, Predicted = Cutoff3)
+
+# Prediction on test data
+PredictTest3 = predict(logit3, testCData, type = "response") 
+table (testCData$Churn, PredictTest>0.5)
+
+# Prediction on test data
+PredictTest3 = predict(logit3, testCData, type = "response") 
+table (Actual = testCData$Churn,Predicted = PredictTest3>0.5)
+
+
+```
+
+```{r}
+rocplot(logit3)
+vif(logit3)
+```
+
+
+
+###### Model 4 
+
+
+```{r}
+set.seed(321)
+logit4 = glm(Churn~. -MonthlyCharge -DataUsage -AccountWeeks -DayCalls , data = trainCData, family = binomial())
+
+# McFadden Rsquare
+
+pR2(logit4)
+#Test for Individual Coefficients (individual betas)
+summary(logit4)
+```
+
+```{r}
+#Explanatory Power of Odds Ratio
+exp(coef(logit4))/(1+exp(coef(logit4)))
+```
+```{r}
+#confusion Matrix 
+Predict4 = predict(logit4, type = "response")
+Cutoff4 = floor(Predict4+0.5)
+table(Actual = trainCData$Churn, Predicted = Cutoff4)
+
+
+# Prediction on test data
+PredictTest4 = predict(logit4, testCData, type = "response") 
+table (Actual = testCData$Churn,Predicted = PredictTest4>0.5)
+  ```
+
+```{r}
+rocplot(logit4)
+vif(logit4)
+```
+
+
+
+##### Up sample - setting up data for up sampling in order to address the class imbalance issue. 
+##### Note - the Y variable label after upsampling has changed from "Churn" to "Class"
+
+
+
+```{r}
+
+'%ni%' <- Negate('%in%')  # define 'not in' func
+options(scipen=999)  # prevents printing scientific notations.
+# Up Sample.
+set.seed(100)
+up_train <- upSample(x = trainCData[, colnames(trainCData) %ni% "Churn"],
+                     y = trainCData$Churn)
+
+table(up_train$Class)
+str(up_train)
+
+
+
+```
+
+Model 5 with upsampling data 
+Note - the Y variable label after upsampling has changed from "Churn" to "Class"
+
+```{r}
+attach(up_train)
+testCData$Churn <- 
+str(up_train)
+set.seed(321)
+logit5 = glm(Class~. -MonthlyCharge -DataUsage  -DayCalls , data = up_train, family = binomial())
+
+# McFadden Rsquare
+pR2(logit5)
+#Test for Individual Coefficients (individual betas)
+summary(logit5)
+```
+```{r}
+#Explanatory Power of Odds Ratio
+exp(coef(logit5))/(1+exp(coef(logit5)))
+```
+
+```{r}
+#confusion Matrix 
+Predict5 = predict(logit5, type = "response")
+Cutoff5 = floor(Predict5+0.5)
+table(Actual = up_train$Class, Predicted = Cutoff5)
+
+PredictTest5 = predict(logit5, testCData, type = "response") 
+table (Actual = testCData$Churn, Predicted = PredictTest5>0.5)
+
+```
+
+###### Tuning for best threshold:
+```{r}
+### When threshold is at 0.43
+
+table (Actual = testCData$Churn, Predicted = PredictTest>0.43)
+```
+  
+```{r}
+### When threshold is at 0.39
+
+table (Actual = testCData$Churn, Predicted =  PredictTest>0.39)
+```
+
+```{r}
+
+1506/(489+1506)
+1546/(1546+449)
+
+642+213+31+113
+
+113/(31+113)
+642/(213+642)
+```
+
+
+
+```{r}
+rocplot(logit5)
+vif(logit5)
+```
+
+##### Smote - setting up data for smote in order to address the class imbalance issue. 
+ 
+
+
+
+```{r}
+# Smote.
+library(DMwR)
+set.seed(100)
+smote_train <- SMOTE(Churn ~ ., as.data.frame(trainCData)) 
+table(smote_train$Churn)
+
+str(smote_train)
+
+```
+
+
+
+Model 6 - with Smote data 
+
+```{r}
+attach(smote_train)
+
+set.seed(321)
+logit6 = glm(Churn~. -DataUsage -MonthlyCharge  -DayCalls -RoamMins, data = smote_train, family = binomial())
+
+# McFadden Rsquare
+pR2(logit6)
+#Test for Individual Coefficients (individual betas)
+summary(logit6)
+```
+
+```{r}
+#Explanatory Power of Odds Ratio
+exp(coef(logit6))/(1+exp(coef(logit6)))
+```
+
+```{r}
+#confusion Matrix 
+Predict6 = predict(logit6, type = "response")
+Cutoff6 = floor(Predict6+0.5)
+table(Actual = smote_train$Churn, Predicted = Cutoff6)
+
+PredictTest6 = predict(logit6, testCData, type = "response") 
+table (Actual = testCData$Churn,Predicted = PredictTest6>0.5)
+
+```
+
+```{r}
+rocplot(logit6)
+vif(logit6)
+```
+
+
+
+###### Tuning for best threshold: 
+### Getting to the best threshold where the True Positive % increases along with increase in False Positive% 
+```{r}
+library(pROC)
+roc(Class, logit5$fitted.values, plot = TRUE)
+par(pty ="s")
+
+roc(Class, logit5$fitted.values, plot = TRUE, legacy.axes = TRUE, percent = TRUE, xlab= " False Positive %", ylab = "True Positive %", col = "#377eb8", lwd=3)
+
+roc.info <- roc(Class, logit5$fitted.values, legacy.axes = TRUE)
+roc.df <- data.frame(tpp = roc.info$sensitivities*100, fpp= (1-roc.info$specificities)*100, thresholds = roc.info$thresholds)
+head(roc.df)
+tail(roc.df)
+
+threshld <- roc.df[roc.df$tpp >80 & roc.df$tpp < 85,]
+write.csv(threshld, "threshold.csv")
+View(threshld)
+
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+

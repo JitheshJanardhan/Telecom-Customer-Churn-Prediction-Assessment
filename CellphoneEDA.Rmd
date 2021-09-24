@@ -1,0 +1,212 @@
+
+```{r}
+getwd()
+Cell_Data = read.csv("D:/Nothing Official/Olympus/Statistics/Logistical Regression/Group Assignment/Cellphone.csv")
+head(Cell_Data)
+str(Cell_Data)
+```
+```{r}
+Cell_Data$Churn = as.factor(Cell_Data$Churn)
+Cell_Data$ContractRenewal = as.factor(Cell_Data$ContractRenewal)
+Cell_Data$DataPlan = as.factor(Cell_Data$DataPlan)
+str(Cell_Data)
+```
+```{r}
+prop.table(table(Cell_Data$Churn))
+```
+
+```{r}
+library(esquisse)
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = AccountWeeks, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Number of Weeks with Active Account") +
+ theme_minimal()
+
+```
+
+```{r}
+esquisser()
+
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = ContractRenewal, fill = Churn) +
+ geom_bar(position = "fill") +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(x = "Contract Renewal (0:Not Renewed/1:Renewed)", title = "Churn By Contract Renewal") +
+ theme_minimal()
+
+
+```
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = DataPlan, fill = Churn) +
+ geom_bar(position = "fill") +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(x = "Data Plan (0: No Data Plan/1: Data Plan)", title = "Churn By Data Plan") +
+ theme_minimal()
+
+##Customers who did not have a data plan have churned out more than those who had a data plan
+```
+```{r}
+esquisser()
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = DataUsage, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Data Usage") +
+ theme_minimal()
+##Data Usage of customers who have churned out are is less than those who have not
+```
+
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = CustServCalls, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Set2") +
+ labs(title = "Churn Vs Number of Calls to Customer Service") +
+ theme_minimal()
+
+##Median of Customer Service Calls made by those who have churned out is higher than the other category
+```
+
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = DayMins, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Average Day Time Mins per month") +
+ theme_minimal()
+##Median Average daytime minutes per month is higher for those who have churned out
+```
+
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = DayCalls, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Average number of daytime calls") +
+ theme_minimal()
+```
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = MonthlyCharge, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Monthly Charge") +
+ theme_minimal()
+
+```
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = OverageFee, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Overage Fee") +
+ theme_minimal()
+
+```
+```{r}
+esquisser()
+
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = Churn, y = RoamMins, fill = Churn) +
+ geom_boxplot() +
+ scale_fill_brewer(palette = "Dark2") +
+ labs(title = "Churn Vs Average Roaming Minutes") +
+ theme_minimal()
+
+```
+```{r}
+esquisser()
+
+library(ggplot2)
+
+ggplot(Cell_Data) +
+ aes(x = DataUsage, y = MonthlyCharge) +
+ geom_point(size = 1L, colour = c("#08306b") )+
+ theme_minimal()
+```
+
+
+
+```{r}
+Cell_Data1 = Cell_Data[, c(1:11)]
+Cell_Data1$Churn = as.numeric(Cell_Data1$Churn)
+Cell_Data1$ContractRenewal = as.numeric(Cell_Data1$ContractRenewal)
+Cell_Data1$DataPlan = as.numeric(Cell_Data1$DataPlan)
+str(Cell_Data1)
+corrplot(cor(Cell_Data1),method = "pie",type = "lower", diag = FALSE)
+```
+
+```{r}
+cor.test(as.numeric(Cell_Data$Churn), Cell_Data$DataUsage)
+```
+```{r}
+cor.test(as.numeric(Cell_Data$Churn), Cell_Data$CustServCalls)
+```
+
+```{r}
+cor.test(as.numeric(Cell_Data$Churn), Cell_Data$MonthlyCharge)
+```
+```{r}
+cor.test(as.numeric(Cell_Data$Churn), Cell_Data$OverageFee)
+```
+```{r}
+cor.test(as.numeric(Cell_Data$Churn), Cell_Data$RoamMins)
+```
+```{r}
+cor.test(as.numeric(Cell_Data$DataPlan), Cell_Data$DataUsage)
+```
+```{r}
+cor.test(as.numeric(Cell_Data$DataPlan), Cell_Data$DataUsage)
+```
+```{r}
+cor.test(as.numeric(Cell_Data$Churn), Cell_Data$AccountWeeks)
+```
+
